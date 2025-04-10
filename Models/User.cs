@@ -1,7 +1,7 @@
 ﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
 
-namespace YourApp.Models;
+namespace DepartmentLibrary.Models;
 
 public class User
 {
@@ -12,8 +12,8 @@ public class User
     [BsonElement("email")]
     public string Email { get; set; }
 
-    [BsonElement("passwordHash")]
-    public string PasswordHash { get; set; }
+    [BsonElement("password")]
+    public string Password { get; set; }
 
     [BsonElement("role")]
     public string Role { get; set; }
