@@ -1,0 +1,30 @@
+﻿@model DepartmentLibrary.Models.LoginModel
+@{
+    ViewData["Title"] = "Login";
+}
+
+<h2>Login</h2>
+
+<form method="post" asp-controller="AuthMvc" asp-action="Login">
+    @Html.AntiForgeryToken()
+
+    <div>
+        <label for="Email">Email</label>
+        <input asp-for="Email" type="email" required />
+        <span asp-validation-for="Email" class="text-danger"></span>
+    </div>
+
+    <div>
+        <label for="Password">Password</label>
+        <input asp-for="Password" type="password" required />
+        <span asp-validation-for="Password" class="text-danger"></span>
+    </div>
+
+    <button type="submit">Login</button>
+</form>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}
