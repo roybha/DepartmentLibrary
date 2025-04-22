@@ -1,0 +1,30 @@
+﻿@model Journal
+
+@{
+    ViewData["Title"] = "Видалити журнал";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<h3>Ви впевнені, що хочете видалити цей журнал?</h3>
+<div>
+    <dl class="row">
+        <dt class="col-sm-2">Назва:</dt>
+        <dd class="col-sm-10">@Model.Title</dd>
+
+        <dt class="col-sm-2">Номер:</dt>
+        <dd class="col-sm-10">@Model.Number</dd>
+
+        <dt class="col-sm-2">Том:</dt>
+        <dd class="col-sm-10">@Model.Volume</dd>
+    </dl>
+
+    <form asp-action="DeleteConfirmed">
+        <input type="hidden" asp-for="Id" />
+        <button type="submit" class="btn btn-danger">Видалити</button>
+        <a asp-action="Index" class="btn btn-secondary">Скасувати</a>
+        <div class="mt-3">
+            <a asp-action="Index" class="btn btn-secondary">Back to List</a>
+        </div>
+    </form>
+</div>

@@ -1,0 +1,32 @@
+﻿@model IEnumerable<Work>
+
+@{
+    ViewData["Title"] = "Список наукових робіт";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Назва</th>
+        <th>Анотація</th>
+        <th>Автори</th>
+        <th>Дата публікації</th>
+        <th>Дії</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var work in Model)
+    {
+        <tr>
+            <td>@work.Title</td>
+            <td>@work.Annotation</td>
+            <td>@string.Join(", ", work.AuthorIds)</td>
+            <td>@work.PublishDate.ToString("dd.MM.yyyy")</td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<a asp-action="Create" class="btn btn-primary">Додати нову роботу</a>

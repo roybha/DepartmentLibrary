@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using DepartmentLibrary.Models;
+using DepartmentLibrary.Repositories;
 using MongoDB.Driver;
 using DepartmentLibrary.Services;
 using DepartmentLibrary.Settings;
@@ -9,12 +11,44 @@ var builder = WebApplication.CreateBuilder(args);
 
 // ====== CONFIG & SETTINGS ======
 var jwtSettings = builder.Configuration.GetSection("JwtSettings").Get<JwtSettings>();
+
 // only one object of class jwtsettings
 builder.Services.AddSingleton(jwtSettings);
 
 // ====== MONGO CLIENT ======
 builder.Services.AddSingleton<IMongoClient>(_ =>
     new MongoClient(builder.Configuration.GetConnectionString("MongoDb"))); // string in appsettings.json  (u need to put in your own)
+
+// ====== REPOSITORIES ======
+builder.Services.AddSingleton<IMongoRepository<Author>>(provider =>
+{
+    var client = provider.GetRequiredService<IMongoClient>();
+    return new MongoRepository<Author>(client, "DepartmentLibraryDb", "authors");
+});
+
+builder.Services.AddSingleton<IMongoRepository<Category>>(provider =>
+{
+    var client = provider.GetRequiredService<IMongoClient>();
+    return new MongoRepository<Category>(client, "DepartmentLibraryDb", "categories");
+});
+
+builder.Services.AddSingleton<IMongoRepository<Journal>>(provider =>
+{
+    var client = provider.GetRequiredService<IMongoClient>();
+    return new MongoRepository<Journal>(client, "DepartmentLibraryDb", "journals");
+});
+
+builder.Services.AddSingleton<IMongoRepository<Work>>(provider =>
+{
+    var client = provider.GetRequiredService<IMongoClient>();
+    return new MongoRepository<Work>(client, "DepartmentLibraryDb", "works");
+});
+
+builder.Services.AddSingleton<IMongoRepository<User>>(provider =>
+{
+    var client = provider.GetRequiredService<IMongoClient>();
+    return new MongoRepository<User>(client, "DepartmentLibraryDb", "users");
+});
 
 // ====== YOUR SERVICES ======
 builder.Services.AddSingleton<AuthService>();
@@ -24,7 +58,7 @@ builder.Services.AddControllersWithViews();
 
 // ====== AUTH ======
 
-/// "for every request that needs auth search for jwt token"
+// "for every request that needs auth search for jwt token"
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;

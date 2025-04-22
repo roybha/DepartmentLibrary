@@ -18,6 +18,7 @@ namespace DepartmentLibrary.Controllers
         }
 
         // GET Login
+        // localhost:5131/AuthMvc/Login
         [HttpGet]
         public IActionResult Login()
         {
