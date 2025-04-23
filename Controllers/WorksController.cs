@@ -113,7 +113,22 @@ public class WorksController : Controller
     
             return View(work);
         }
+
+
     }
-    
+    // GET: Works/Delete/{id}
+    public async Task<IActionResult> Delete(string id)
+    {
+        var work = await _repository.GetByIdAsync(id);
+        if (work == null)
+        {
+            return NotFound();
+        }
+
+        await _repository.DeleteAsync(id);
+        _logger.LogInformation($"Work {id} deleted");
+        return RedirectToAction(nameof(Index));
+    }
+
     //TODO GenerateReport
 }
