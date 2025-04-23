@@ -1,5 +1,6 @@
 ﻿using DepartmentLibrary.Models;
 using DepartmentLibrary.Repositories;
+using DepartmentLibrary.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Driver;
@@ -30,11 +31,40 @@ public class WorksController : Controller
     }
 
     // GET: Works
-    public async Task<IActionResult> Index()
+    public async Task<IActionResult> Index(string searchText)
     {
-        _logger.LogInformation("Get all works");
         var works = await _repository.GetAllAsync();
-        return View(works);
+        var authors = await _authorRepository.GetAllAsync();
+        var authorDict = authors.ToDictionary(a => a.Id, a => a.Name);
+
+        if (!string.IsNullOrEmpty(searchText))
+        {
+            searchText = searchText.Trim().ToLower();
+
+            var matchingAuthorIds = authors
+            .Where(a => a.Name.ToLower().Contains(searchText))
+            .Select(a => a.Id)
+            .ToHashSet();
+
+            works = works.Where(w =>
+                (!string.IsNullOrEmpty(w.Title) && w.Title.ToLower().Contains(searchText)) ||
+                (w.AuthorIds != null && w.AuthorIds.Any(id => matchingAuthorIds.Contains(id)))
+            ).ToList();
+        }
+
+        var viewModel = works.Select(w => new WorkViewModel
+        {
+            Id = w.Id,
+            Title = w.Title,
+            Annotation = w.Annotation,
+            PublishDate = w.PublishDate,
+            AuthorNames = w.AuthorIds?
+                .Where(id => authorDict.ContainsKey(id))
+                .Select(id => authorDict[id])
+                .ToList() ?? new List<string>()
+        });
+
+        return View(viewModel);
     }
 
     // GET: Works/Create
