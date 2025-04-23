@@ -18,7 +18,7 @@ namespace DepartmentLibrary.Services
     {
         private readonly IMongoCollection<User> _users;
         private readonly JwtSettings _jwtSettings; 
-        private readonly List<string> _adminEmails = new() { "a@example.com" }; // admin s list 
+        //private readonly List<string> _adminEmails = new() { "a@example.com" }; // admin s list 
 
         public AuthService(IMongoClient mongoClient, JwtSettings jwtSettings)
         {
@@ -58,8 +58,8 @@ namespace DepartmentLibrary.Services
         public async Task RegisterAsync(string email, string password, string role, string adminEmail)
         {
             System.Diagnostics.Debug.WriteLine("ADMIN EMAIL",email);
-            if (!_adminEmails.Contains(adminEmail))
-                throw new UnauthorizedAccessException("Only admins can register users");
+            //if (!_adminEmails.Contains(adminEmail))
+            //    throw new UnauthorizedAccessException("Only admins can register users");
 
             var user = new User
             {
