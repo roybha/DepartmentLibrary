@@ -58,8 +58,8 @@ namespace DepartmentLibrary.Services
         public async Task RegisterAsync(string email, string password, string role, string adminEmail)
         {
             System.Diagnostics.Debug.WriteLine("ADMIN EMAIL",email);
-            if (!_adminEmails.Contains(adminEmail))
-                throw new UnauthorizedAccessException("Only admins can register users");
+            //if (!_adminEmails.Contains(adminEmail))
+            //    throw new UnauthorizedAccessException("Only admins can register users");
 
             var user = new User
             {
