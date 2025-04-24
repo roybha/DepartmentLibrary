@@ -26,6 +26,13 @@ builder.Services.AddSingleton<IMongoRepository<Author>>(provider =>
     return new MongoRepository<Author>(client, "DepartmentLibraryDb", "authors");
 });
 
+// ====== Reports ======
+builder.Services.AddSingleton<ReportService>(provider =>
+{
+    var client = provider.GetRequiredService<IMongoClient>();
+    return new ReportService(client, "DepartmentLibraryDb");
+});
+
 builder.Services.AddSingleton<IMongoRepository<Category>>(provider =>
 {
     var client = provider.GetRequiredService<IMongoClient>();
