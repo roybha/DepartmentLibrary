@@ -18,7 +18,7 @@ namespace DepartmentLibrary.Services
     {
         private readonly IMongoCollection<User> _users;
         private readonly JwtSettings _jwtSettings; 
-        private readonly List<string> _adminEmails = new() { "a@example.com" }; // admin s list 
+        private readonly List<string> _adminEmails = new() { "a@example.com, sinchuk_taras@knu.ua" }; // admin s list 
 
         public AuthService(IMongoClient mongoClient, JwtSettings jwtSettings)
         {
