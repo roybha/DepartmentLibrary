@@ -8,6 +8,7 @@ using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using DepartmentLibrary.Models;
+using MongoDB.Bson.Serialization;
 
 namespace DepartmentLibrary.Services
 {
@@ -24,17 +25,17 @@ namespace DepartmentLibrary.Services
             Console.WriteLine("[ReportService] Initialized with database: " + databaseName);
         }
 
-        public async Task<byte[]> GenerateAuthorsReportAsync()
+        public async Task<byte[]> GenerateAuthorsReportAsync(DateTime startDate, DateTime endDate)
         {
             Console.WriteLine("[ReportService] Starting report generation...");
             try
             {
-                Console.WriteLine("[ReportService] Fetching report data from MongoDB...");
-                var reportData = await GetReportDataAsync();
+                Console.WriteLine($"[ReportService] Fetching report data from MongoDB between {startDate:yyyy-MM-dd} and {endDate:yyyy-MM-dd}...");
+                var reportData = await GetReportDataAsync(startDate, endDate);
                 Console.WriteLine($"[ReportService] Retrieved data for {reportData.Count} authors");
 
                 Console.WriteLine("[ReportService] Generating PDF document...");
-                var document = new AuthorsReportDocument(reportData);
+                var document = new AuthorsReportDocument(reportData, startDate, endDate);
                 var pdfBytes = document.GeneratePdf();
 
                 Console.WriteLine("[ReportService] PDF generation completed successfully");
@@ -47,206 +48,315 @@ namespace DepartmentLibrary.Services
             }
         }
 
-        private async Task<List<AuthorReportData>> GetReportDataAsync()
+
+        private async Task<List<AuthorReportData>> GetReportDataAsync(DateTime startDate, DateTime endDate)
         {
-            Console.WriteLine("[MongoDB] Initializing database connection...");
             var database = _mongoClient.GetDatabase(_databaseName);
             var worksCollection = database.GetCollection<BsonDocument>("works");
-            Console.WriteLine($"[MongoDB] Connected to collection: {worksCollection.CollectionNamespace}");
 
-            Console.WriteLine("[MongoDB] Building aggregation pipeline...");
+            // Debug: Count total works in collection
+            var totalWorksCount = await worksCollection.CountDocumentsAsync(new BsonDocument());
+            System.Diagnostics.Debug.WriteLine($"Total works in collection: {totalWorksCount}");
+
             var pipeline = new BsonDocument[]
             {
-                new BsonDocument("$lookup", new BsonDocument
+        // Filter by date range first - only include works with publish_date within startDate and endDate
+        new BsonDocument("$match", new BsonDocument
+        {
+            { "$and", new BsonArray
                 {
-                    { "from", "authors" },
-                    { "localField", "authors" },
-                    { "foreignField", "_id" },
-                    { "as", "author_details" }
-                }),
-                new BsonDocument("$unwind", "$author_details"),
-                new BsonDocument("$lookup", new BsonDocument
-                {
-                    { "from", "categories" },
-                    { "localField", "category" },
-                    { "foreignField", "_id" },
-                    { "as", "category_details" }
-                }),
-                new BsonDocument("$lookup", new BsonDocument
-                {
-                    { "from", "journals" },
-                    { "localField", "journal" },
-                    { "foreignField", "_id" },
-                    { "as", "journal_details" }
-                }),
-                new BsonDocument("$addFields", new BsonDocument
-                {
-                    { "publish_date", new BsonDocument("$ifNull", new BsonArray { "$publish_date", new DateTime(2023, 1, 1) }) },
-                    { "category_name", new BsonDocument("$ifNull", new BsonArray
-                        {
-                            new BsonDocument("$arrayElemAt", new BsonArray { "$category_details.name", 0 }),
-                            "Uncategorized"
-                        })
-                    },
-                    { "journal_name", new BsonDocument("$ifNull", new BsonArray
-                        {
-                            new BsonDocument("$arrayElemAt", new BsonArray { "$journal_details.name", 0 }),
-                            "No Journal"
-                        })
-                    },
-                    { "pages", new BsonDocument("$ifNull", new BsonArray { "$pages", 0 }) },
-                    { "digital_reference", new BsonDocument("$ifNull", new BsonArray { "$digital_reference", "N/A" }) }
-                }),
-                new BsonDocument("$addFields", new BsonDocument
-                {
-                    { "isBeforeThesis", new BsonDocument("$lt", new BsonArray {
-                        "$publish_date", "$author_details.thesis_defense_date"
-                    })}
-                }),
-                new BsonDocument("$project", new BsonDocument
-                {
-                    { "_id", 0 },
-                    { "author_id", "$author_details._id" },
-                    { "author_name", "$author_details.name" },
-                    { "isBeforeThesis", 1 },
-                    { "Work Title", "$title" },
-                    { "Publication Date", "$publish_date" },
-                    { "Category", "$category_name" },
-                    { "Journal", "$journal_name" },
-                    { "Pages", "$pages" },
-                    { "Digital Reference", "$digital_reference" }
-                }),
-                new BsonDocument("$group", new BsonDocument
-                {
-                    { "_id", "$author_id" },
-                    { "Author Name", new BsonDocument("$first", "$author_name") },
-                    { "works_before_thesis", new BsonDocument("$push", new BsonDocument("$cond", new BsonArray {
-                        "$isBeforeThesis",
+                    new BsonDocument("$or", new BsonArray
+                    {
+                        // Either publish_date exists and is within range
                         new BsonDocument
                         {
-                            { "Work Title", "$Work Title" },
-                            { "Publication Date", "$Publication Date" },
-                            { "Category", "$Category" },
-                            { "Journal", "$Journal" },
-                            { "Pages", "$Pages" },
-                            { "Digital Reference", "$Digital Reference" }
+                            { "publish_date", new BsonDocument
+                                {
+                                    { "$gte", startDate },
+                                    { "$lte", endDate }
+                                }
+                            }
                         },
-                        BsonNull.Value
-                    })) },
-                    { "works_after_thesis", new BsonDocument("$push", new BsonDocument("$cond", new BsonArray {
-                        new BsonDocument("$not", new BsonArray { "$isBeforeThesis" }),
+                        // Or publish_date is null (handle these separately with default date)
                         new BsonDocument
                         {
-                            { "Work Title", "$Work Title" },
-                            { "Publication Date", "$Publication Date" },
-                            { "Category", "$Category" },
-                            { "Journal", "$Journal" },
-                            { "Pages", "$Pages" },
-                            { "Digital Reference", "$Digital Reference" }
-                        },
-                        BsonNull.Value
-                    })) }
-                }),
-                new BsonDocument("$addFields", new BsonDocument
+                            { "publish_date", BsonNull.Value }
+                        }
+                    })
+                }
+            }
+        }),
+
+        // Lookup authors first
+        new BsonDocument("$lookup", new BsonDocument
+        {
+            { "from", "authors" },
+            { "localField", "authors" },
+            { "foreignField", "_id" },
+            { "as", "author_details" }
+        }),
+
+        // Lookup categories
+        new BsonDocument("$lookup", new BsonDocument
+        {
+            { "from", "categories" },
+            { "localField", "category" },
+            { "foreignField", "_id" },
+            { "as", "category_details" }
+        }),
+
+        // Lookup journals
+        new BsonDocument("$lookup", new BsonDocument
+        {
+            { "from", "journals" },
+            { "localField", "journal" },
+            { "foreignField", "_id" },
+            { "as", "journal_details" }
+        }),
+
+        // Make sure we have at least one author
+        new BsonDocument("$match", new BsonDocument
+        {
+            { "author_details", new BsonDocument("$ne", new BsonArray()) }
+        }),
+
+        // Unwind authors
+        new BsonDocument("$unwind", "$author_details"),
+
+        // Add debugging field for thesis defense date and handle null publish dates
+        new BsonDocument("$addFields", new BsonDocument
+        {
+            { "debug_thesis_date", "$author_details.thesis_defense_date" },
+            
+            // Improved date handling - use a conditional to check if publish_date exists
+            { "publish_date_safe", new BsonDocument("$cond", new BsonDocument
                 {
-                    { "works_before_thesis", new BsonDocument("$filter", new BsonDocument
-                        {
-                            { "input", "$works_before_thesis" },
-                            { "as", "item" },
-                            { "cond", new BsonDocument("$ne", new BsonArray { "$$item", BsonNull.Value }) }
-                        })
-                    },
-                    { "works_after_thesis", new BsonDocument("$filter", new BsonDocument
-                        {
-                            { "input", "$works_after_thesis" },
-                            { "as", "item" },
-                            { "cond", new BsonDocument("$ne", new BsonArray { "$$item", BsonNull.Value }) }
-                        })
-                    }
-                }),
-                new BsonDocument("$project", new BsonDocument
-                {
-                    { "_id", 0 },
-                    { "Author Name", 1 },
-                    { "works_before_thesis", 1 },
-                    { "works_after_thesis", 1 }
+                    { "if", new BsonDocument("$eq", new BsonArray { "$publish_date", BsonNull.Value }) },
+                    // For null publish dates, use middle of the specified date range
+                    { "then", startDate.AddDays((endDate - startDate).TotalDays / 2) },
+                    { "else", "$publish_date" }
                 })
+            }
+        }),
+
+        // Now create separate documents for before and after thesis
+        new BsonDocument("$facet", new BsonDocument
+        {
+            { "before_thesis", new BsonArray
+                {
+                    // Match works before thesis defense or with null defense date
+                    new BsonDocument("$match", new BsonDocument("$or", new BsonArray
+                        {
+                            new BsonDocument("$expr", new BsonDocument("$eq", new BsonArray { "$author_details.thesis_defense_date", BsonNull.Value })),
+                            new BsonDocument("$expr", new BsonDocument("$lt", new BsonArray { "$publish_date_safe", "$author_details.thesis_defense_date" }))
+                        }))
+                    ,
+                    // Project necessary fields
+                    new BsonDocument("$project", new BsonDocument
+                    {
+                        { "_id", 0 },
+                        { "author_id", "$author_details._id" },
+                        { "author_name", "$author_details.name" },
+                        { "work", new BsonDocument
+                            {
+                                { "Work Title", new BsonDocument("$ifNull", new BsonArray { "$title", "Untitled" }) },
+                                { "Publication Date", "$publish_date_safe" },
+                                { "Category", new BsonDocument("$cond", new BsonDocument
+                                    {
+                                        { "if", new BsonDocument("$gt", new BsonArray { new BsonDocument("$size", "$category_details"), 0 }) },
+                                        { "then", new BsonDocument("$arrayElemAt", new BsonArray { "$category_details.title", 0 }) },
+                                        { "else", "Uncategorized" }
+                                    })
+                                },
+                                { "Journal", new BsonDocument("$cond", new BsonDocument
+                                    {
+                                        { "if", new BsonDocument("$gt", new BsonArray { new BsonDocument("$size", "$journal_details"), 0 }) },
+                                        { "then", new BsonDocument("$arrayElemAt", new BsonArray { "$journal_details.title", 0 }) },
+                                        { "else", "No Journal" }
+                                    })
+                                },
+                                { "Pages", new BsonDocument("$ifNull", new BsonArray { "$pages_num", 0 }) },
+                                { "Digital Reference", new BsonDocument("$ifNull", new BsonArray { "$digital_reference", "N/A" }) }
+                            }
+                        },
+                        { "debug_publish_date", "$publish_date_safe" },
+                        { "debug_thesis_date", "$debug_thesis_date" }
+                    })
+                }
+            },
+            { "after_thesis", new BsonArray
+                {
+                    // Match works after thesis defense with non-null defense date
+                    new BsonDocument("$match", new BsonDocument("$and", new BsonArray
+                        {
+                            new BsonDocument("$expr", new BsonDocument("$ne", new BsonArray { "$author_details.thesis_defense_date", BsonNull.Value })),
+                            new BsonDocument("$expr", new BsonDocument("$gte", new BsonArray { "$publish_date_safe", "$author_details.thesis_defense_date" }))
+                        }))
+                    ,
+                    // Project necessary fields
+                    new BsonDocument("$project", new BsonDocument
+                    {
+                        { "_id", 0 },
+                        { "author_id", "$author_details._id" },
+                        { "author_name", "$author_details.name" },
+                        { "work", new BsonDocument
+                            {
+                                { "Work Title", new BsonDocument("$ifNull", new BsonArray { "$title", "Untitled" }) },
+                                { "Publication Date", "$publish_date_safe" },
+                                { "Category", new BsonDocument("$cond", new BsonDocument
+                                    {
+                                        { "if", new BsonDocument("$gt", new BsonArray { new BsonDocument("$size", "$category_details"), 0 }) },
+                                        { "then", new BsonDocument("$arrayElemAt", new BsonArray { "$category_details.title", 0 }) },
+                                        { "else", "Uncategorized" }
+                                    })
+                                },
+                                { "Journal", new BsonDocument("$cond", new BsonDocument
+                                    {
+                                        { "if", new BsonDocument("$gt", new BsonArray { new BsonDocument("$size", "$journal_details"), 0 }) },
+                                        { "then", new BsonDocument("$arrayElemAt", new BsonArray { "$journal_details.title", 0 }) },
+                                        { "else", "No Journal" }
+                                    })
+                                },
+                                { "Pages", new BsonDocument("$ifNull", new BsonArray { "$pages_num", 0 }) },
+                                { "Digital Reference", new BsonDocument("$ifNull", new BsonArray { "$digital_reference", "N/A" }) }
+                            }
+                        },
+                        { "debug_publish_date", "$publish_date_safe" },
+                        { "debug_thesis_date", "$debug_thesis_date" }
+                    })
+                }
+            }
+        }),
+
+        // Unwind both result sets
+        new BsonDocument("$project", new BsonDocument
+        {
+            { "all_data", new BsonDocument("$concatArrays", new BsonArray { "$before_thesis", "$after_thesis" }) }
+        }),
+        new BsonDocument("$unwind", "$all_data"),
+
+        // Group by author to separate works before and after thesis
+        new BsonDocument("$group", new BsonDocument
+        {
+            { "_id", "$all_data.author_id" },
+            { "Author Name", new BsonDocument("$first", "$all_data.author_name") },
+            { "works_before_thesis", new BsonDocument("$push", new BsonDocument("$cond", new BsonDocument
+                {
+                    { "if", new BsonDocument("$or", new BsonArray
+                        {
+                            new BsonDocument("$eq", new BsonArray { "$all_data.debug_thesis_date", BsonNull.Value }),
+                            new BsonDocument("$lt", new BsonArray { "$all_data.debug_publish_date", "$all_data.debug_thesis_date" })
+                        })
+                    },
+                    { "then", "$all_data.work" },
+                    { "else", BsonNull.Value }
+                }))
+            },
+            { "works_after_thesis", new BsonDocument("$push", new BsonDocument("$cond", new BsonDocument
+                {
+                    { "if", new BsonDocument("$and", new BsonArray
+                        {
+                            new BsonDocument("$ne", new BsonArray { "$all_data.debug_thesis_date", BsonNull.Value }),
+                            new BsonDocument("$gte", new BsonArray { "$all_data.debug_publish_date", "$all_data.debug_thesis_date" })
+                        })
+                    },
+                    { "then", "$all_data.work" },
+                    { "else", BsonNull.Value }
+                }))
+            },
+            { "debug_dates", new BsonDocument("$push", new BsonDocument
+                {
+                    { "publish_date", "$all_data.debug_publish_date" },
+                    { "thesis_date", "$all_data.debug_thesis_date" }
+                })
+            }
+        }),
+
+        // Clean up the null values
+        new BsonDocument("$project", new BsonDocument
+        {
+            { "_id", 0 },
+            { "Author Name", 1 },
+            { "works_before_thesis", new BsonDocument("$filter", new BsonDocument
+                {
+                    { "input", "$works_before_thesis" },
+                    { "as", "work" },
+                    { "cond", new BsonDocument("$ne", new BsonArray { "$$work", BsonNull.Value }) }
+                })
+            },
+            { "works_after_thesis", new BsonDocument("$filter", new BsonDocument
+                {
+                    { "input", "$works_after_thesis" },
+                    { "as", "work" },
+                    { "cond", new BsonDocument("$ne", new BsonArray { "$$work", BsonNull.Value }) }
+                })
+            },
+            { "debug_dates", 1 }
+        })
             };
 
-            Console.WriteLine("[MongoDB] Executing aggregation pipeline...");
-            var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-            var aggregation = await worksCollection.AggregateAsync<BsonDocument>(pipeline);
-            var bsonResults = await aggregation.ToListAsync();
-            stopwatch.Stop();
-
-            Console.WriteLine($"[MongoDB] Pipeline executed in {stopwatch.ElapsedMilliseconds}ms");
-            Console.WriteLine($"[MongoDB] Retrieved {bsonResults.Count} author documents");
-
-            Console.WriteLine("[Data Processing] Parsing MongoDB results...");
-            var results = new List<AuthorReportData>();
-            int totalWorks = 0;
-            int totalPages = 0;
-            var categories = new HashSet<string>();
-            var journals = new HashSet<string>();
-
-            foreach (var doc in bsonResults)
+            try
             {
-                Console.WriteLine($"[Data Processing] Processing author: {doc.GetValue("Author Name", "Unknown")}");
+                // Debug the date range
+                System.Diagnostics.Debug.WriteLine($"Filtering works between {startDate:yyyy-MM-dd} and {endDate:yyyy-MM-dd}");
 
-                var author = new AuthorReportData
-                {
-                    AuthorName = doc.GetValue("Author Name", "").AsString,
-                    WorksBeforeThesis = new List<WorkInfo>(),
-                    WorksAfterThesis = new List<WorkInfo>()
-                };
+                // Use a raw result class to include debugging information
+                var aggregationResult = await worksCollection.AggregateAsync<BsonDocument>(pipeline);
+                var rawResults = await aggregationResult.ToListAsync();
 
-                if (doc.Contains("works_before_thesis"))
+                // Convert to your AuthorReportData model and debug
+                var results = new List<AuthorReportData>();
+                int totalWorksInReport = 0;
+                int beforeThesisCount = 0;
+                int afterThesisCount = 0;
+
+                foreach (var doc in rawResults)
                 {
-                    var works = doc["works_before_thesis"].AsBsonArray;
-                    Console.WriteLine($"[Data Processing] Found {works.Count} works before thesis");
-                    foreach (var workDoc in works)
+                    // Extract data from BsonDocument
+                    var authorData = new AuthorReportData
                     {
-                        if (workDoc.IsBsonDocument)
+                        AuthorName = doc["Author Name"].AsString,
+                        WorksBeforeThesis = BsonSerializer.Deserialize<List<WorkInfo>>(doc["works_before_thesis"].ToJson()),
+                        WorksAfterThesis = BsonSerializer.Deserialize<List<WorkInfo>>(doc["works_after_thesis"].ToJson())
+                    };
+
+                    // Debug information
+                    beforeThesisCount += authorData.WorksBeforeThesis?.Count ?? 0;
+                    afterThesisCount += authorData.WorksAfterThesis?.Count ?? 0;
+
+                    // Debug the date comparisons
+                    if (doc.Contains("debug_dates"))
+                    {
+                        var debugDates = doc["debug_dates"].AsBsonArray;
+                        System.Diagnostics.Debug.WriteLine($"Author: {authorData.AuthorName}");
+                        foreach (var dateInfo in debugDates)
                         {
-                            var work = ParseWorkInfo(workDoc.AsBsonDocument);
-                            author.WorksBeforeThesis.Add(work);
-                            totalWorks++;
-                            totalPages += work.Pages;
-                            categories.Add(work.Category);
-                            journals.Add(work.Journal);
+                            var dateDoc = dateInfo.AsBsonDocument;
+                            if (dateDoc.Contains("publish_date") && dateDoc.Contains("thesis_date"))
+                            {
+                                var publishDate = dateDoc["publish_date"].IsBsonNull ? "NULL" : dateDoc["publish_date"].ToUniversalTime().ToString("yyyy-MM-dd");
+                                var thesisDate = dateDoc["thesis_date"].IsBsonNull ? "NULL" : dateDoc["thesis_date"].ToUniversalTime().ToString("yyyy-MM-dd");
+                                System.Diagnostics.Debug.WriteLine($"  Publish date: {publishDate}, Thesis date: {thesisDate}");
+                            }
                         }
                     }
+
+                    results.Add(authorData);
                 }
 
-                if (doc.Contains("works_after_thesis"))
-                {
-                    var works = doc["works_after_thesis"].AsBsonArray;
-                    Console.WriteLine($"[Data Processing] Found {works.Count} works after thesis");
-                    foreach (var workDoc in works)
-                    {
-                        if (workDoc.IsBsonDocument)
-                        {
-                            var work = ParseWorkInfo(workDoc.AsBsonDocument);
-                            author.WorksAfterThesis.Add(work);
-                            totalWorks++;
-                            totalPages += work.Pages;
-                            categories.Add(work.Category);
-                            journals.Add(work.Journal);
-                        }
-                    }
-                }
+                System.Diagnostics.Debug.WriteLine($"Total works before thesis: {beforeThesisCount}");
+                System.Diagnostics.Debug.WriteLine($"Total works after thesis: {afterThesisCount}");
+                System.Diagnostics.Debug.WriteLine($"Total authors in report: {results.Count}");
 
-                results.Add(author);
+                return results;
             }
-
-            Console.WriteLine($"[Data Processing] Completed processing:");
-            Console.WriteLine($"- Total authors: {results.Count}");
-            Console.WriteLine($"- Total works: {totalWorks}");
-            Console.WriteLine($"- Total pages: {totalPages}");
-            Console.WriteLine($"- Unique categories: {categories.Count}");
-            Console.WriteLine($"- Unique journals: {journals.Count}");
-
-            return results;
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Error retrieving report data: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                // You might want to log this exception or handle it appropriately
+                throw; // Re-throw to let the caller handle it
+            }
         }
 
         private WorkInfo ParseWorkInfo(BsonDocument workDoc)

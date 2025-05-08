@@ -19,7 +19,9 @@ namespace DepartmentLibrary.Controllers
             return View();
         }
 
-        public async Task<IActionResult> Generate()
+        // Change to HttpGet to allow direct URL access
+        [HttpGet]
+        public async Task<IActionResult> Generate(DateTime startDate, DateTime endDate)
         {
             try
             {
@@ -27,8 +29,8 @@ namespace DepartmentLibrary.Controllers
                 var currentDate = DateTime.Now.ToString("yyyyMMdd_HHmmss");
                 var filename = $"AuthorsReport_{currentDate}.pdf";
 
-                // Generate the PDF report
-                var reportStream = await _reportService.GenerateAuthorsReportAsync();
+                // Generate the PDF report with date filter
+                var reportStream = await _reportService.GenerateAuthorsReportAsync(startDate, endDate);
 
                 // Return the PDF as a file download
                 return File(reportStream, "application/pdf", filename);
