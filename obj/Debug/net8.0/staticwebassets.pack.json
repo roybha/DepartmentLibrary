@@ -5,6 +5,10 @@
       "PackagePath": "staticwebassets\\DepartmentLibrary.bundle.scp.css"
     },
     {
+      "Id": "C:\\COURSE_2\\DB design\\DepartmentLibrary\\wwwroot\\css\\registration-style.css",
+      "PackagePath": "staticwebassets\\css\\registration-style.css"
+    },
+    {
       "Id": "C:\\COURSE_2\\DB design\\DepartmentLibrary\\wwwroot\\css\\site.css",
       "PackagePath": "staticwebassets\\css\\site.css"
     },

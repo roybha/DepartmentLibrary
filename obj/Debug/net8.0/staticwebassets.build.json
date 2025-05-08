@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "5EHWUL1++w+g3pq7kr20mPHBC7pS0Ff/hrseYSlMDLs=",
+  "Hash": "AiaN0dnozmJomZ1R6dO3c8oRfw0Aw1JMILzV4Ahq5u8=",
   "Source": "DepartmentLibrary",
   "BasePath": "_content/DepartmentLibrary",
   "Mode": "Default",
@@ -53,6 +53,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "C:\\COURSE_2\\DB design\\DepartmentLibrary\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\DepartmentLibrary.bundle.scp.css"
+    },
+    {
+      "Identity": "C:\\COURSE_2\\DB design\\DepartmentLibrary\\wwwroot\\css\\registration-style.css",
+      "SourceId": "DepartmentLibrary",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\COURSE_2\\DB design\\DepartmentLibrary\\wwwroot\\",
+      "BasePath": "_content/DepartmentLibrary",
+      "RelativePath": "css/registration-style.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\registration-style.css"
     },
     {
       "Identity": "C:\\COURSE_2\\DB design\\DepartmentLibrary\\wwwroot\\css\\site.css",
