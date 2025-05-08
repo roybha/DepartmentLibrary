@@ -1,4 +1,6 @@
-﻿@model IEnumerable<DepartmentLibrary.ViewModels.WorkViewModel>
+﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@model IEnumerable<DepartmentLibrary.ViewModels.WorkViewModel>
 
 
 @{
@@ -21,7 +23,10 @@
             <th>Анотація</th>
             <th>Автори</th>
             <th>Дата публікації</th>
-            <th>Дії</th>
+            @if (User.IsInRole("admin"))
+            {
+                <th>Дії</th>
+            }
         </tr>
     </thead>
     <tbody>
@@ -32,12 +37,15 @@
                 <td>@work.Annotation</td>
                 <td>@string.Join(", ", work.AuthorNames)</td>
                 <td>@work.PublishDate.ToString("dd.MM.yyyy")</td>
-                <td>
+                @if (User.IsInRole("admin"))
+                {
+                  <td>
                     <a asp-action="Delete" asp-route-id="@work.Id" class="btn btn-danger btn-sm"
                        onclick="return confirm('Are you sure you want to delete this work?');">
                         Видалити
                     </a>
-                </td>
+                  </td>
+                }
             </tr>
         }
     </tbody>

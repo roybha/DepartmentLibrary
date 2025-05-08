@@ -1,32 +1,47 @@
-﻿@{
+﻿@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@{
     ViewData["Title"] = "Home";
 }
 
 <div class="container mt-5">
     <h1 class="display-4 text-center mb-5">Welcome to Department Library</h1>
-    
+
     <div class="row justify-content-center">
+        @if (User.IsInRole("admin"))
+        {
+        <!-- Register Users -->
+        <div class="col-md-3 mb-3">
+            <a asp-controller="AuthMvc" asp-action="Register" class="btn btn-primary btn-lg w-100 py-3">
+                Register User
+            </a>
+        </div>
+
         <!-- Authors -->
         <div class="col-md-3 mb-3">
             <a asp-controller="Authors" asp-action="Index" class="btn btn-primary btn-lg w-100 py-3">
                 Manage Authors
             </a>
         </div>
-        
+
+
+      
         <!-- Categories -->
         <div class="col-md-3 mb-3">
             <a asp-controller="Categories" asp-action="Index" class="btn btn-primary btn-lg w-100 py-3">
-                Manage Categories
+                    Manage Categories
             </a>
-        </div>
+         </div>
         
+
         <!-- Journals -->
         <div class="col-md-3 mb-3">
-            <a asp-controller="Journals" asp-action="Index" class="btn btn-primary btn-lg w-100 py-3">
-                Manage Journals
-            </a>
+             <a asp-controller="Journals" asp-action="Index" class="btn btn-primary btn-lg w-100 py-3">
+                    Manage Journals
+             </a>
         </div>
-        
+        }
+
         <!-- Works -->
         <div class="col-md-3 mb-3">
             <a asp-controller="Works" asp-action="Index" class="btn btn-primary btn-lg w-100 py-3">

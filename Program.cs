@@ -121,7 +121,7 @@ app.UseAuthorization();
 // ====== ROUTING ======
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=AuthMvc}/{action=Login}/{id?}");
 
 var hash = BCrypt.Net.BCrypt.HashPassword("test");
 
