@@ -8668,23 +8668,23 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Андрей\\.nuget\\packages\\": {},
+    "C:\\Users\\illia\\.nuget\\packages\\": {},
     "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "D:\\Visual\\2Course2Semester\\DEPLIB\\DepartmentLibrary.csproj",
+      "projectUniqueName": "C:\\COURSE_2\\DB design\\DepartmentLibrary\\DepartmentLibrary.csproj",
       "projectName": "DepartmentLibrary",
-      "projectPath": "D:\\Visual\\2Course2Semester\\DEPLIB\\DepartmentLibrary.csproj",
-      "packagesPath": "C:\\Users\\Андрей\\.nuget\\packages\\",
-      "outputPath": "D:\\Visual\\2Course2Semester\\DEPLIB\\obj\\",
+      "projectPath": "C:\\COURSE_2\\DB design\\DepartmentLibrary\\DepartmentLibrary.csproj",
+      "packagesPath": "C:\\Users\\illia\\.nuget\\packages\\",
+      "outputPath": "C:\\COURSE_2\\DB design\\DepartmentLibrary\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "C:\\Users\\Андрей\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\illia\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
@@ -8693,6 +8693,7 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
+        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -8710,8 +8711,7 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "9.0.200"
+      }
     },
     "frameworks": {
       "net8.0": {
@@ -8777,7 +8777,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.203/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.400/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

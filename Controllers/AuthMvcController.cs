@@ -89,9 +89,10 @@ namespace DepartmentLibrary.Controllers
 
             try
             {
-                await _authService.RegisterAsync(dto.Email, dto.Password, dto.Role, User.Identity?.Name);
+                _logger.LogInformation("ADMIN EMAIL", User.Identity?.Name);
+                await _authService.RegisterAsync(dto, User.Identity?.Name);
                 _logger.LogInformation("Admin registered a new user {Email} with role {Role} at {Time}.", dto.Email, dto.Role, DateTime.UtcNow);
-                return RedirectToAction("Login"); // later can be home page idk
+                return RedirectToAction("Index","Home"); // later can be home page idk
             }
             catch (UnauthorizedAccessException)
             {

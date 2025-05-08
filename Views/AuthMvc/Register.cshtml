@@ -7,22 +7,46 @@
 
 <form method="post" asp-controller="AuthMvc" asp-action="Register">
     @Html.AntiForgeryToken()
-
-    <div>
+    <div class="form-group">
+        <label for="Name">Name</label>
+        <input asp-for="Name" type="text" required />
+        <span asp-validation-for="Name" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label for="Position">Position</label>
+        <input asp-for="Position" type="text" required />
+        <span asp-validation-for="Position" class="text-danger"></span>
+    </div>
+    <div class="form-group">
+        <label for="Phone">Phone</label>
+        <input type="text" asp-for="Phone" class="form-control"
+               pattern="^\+?[1-9]\d{1,14}$"
+               required/>
+        <span asp-validation-for="Phone" class="text-danger"></span>
+    </div>
+    <div class="form-group">
         <label for="Email">Email</label>
         <input asp-for="Email" type="email" required />
         <span asp-validation-for="Email" class="text-danger"></span>
     </div>
 
-    <div>
+    <div class="form-group">
         <label for="Password">Password</label>
         <input asp-for="Password" type="password" required />
         <span asp-validation-for="Password" class="text-danger"></span>
     </div>
-
-    <div>
+    <div class="form-group">
+        <label for="ThesisDefenseDate">Thesis Defense Date (Optional)</label>
+        <input type="datetime-local" id="ThesisDefenseDate" name="ThesisDefenseDate" class="form-control" />
+        <small class="form-text text-muted">Leave this field empty if not applicable.</small>
+    </div>
+    <div class="form-group">
         <label for="Role">Role</label>
-        <input asp-for="Role" type="text" required />
+        <select asp-for="Role" class="form-control" required>
+            <option value="" disabled selected>Select a Role</option>
+            <option value="author">Author</option>
+            <option value="admin">Admin</option>
+        </select>
         <span asp-validation-for="Role" class="text-danger"></span>
     </div>
 
