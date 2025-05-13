@@ -7,6 +7,10 @@
     {
         public string Email { get; set; }
         public string Password { get; set; }
+        public string Phone { get; set; }
+        public string Position { get; set; }
+        public string Name { get; set; }
+        public string? ThesisDefenseDate { get; set; }
         public string Role { get; set; }
     }
 }

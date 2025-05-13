@@ -7,6 +7,7 @@ using DepartmentLibrary.Settings;
 using Microsoft.CodeAnalysis.Scripting;
 using DepartmentLibrary.Models;
 using DepartmentLibrary.Controllers;
+using System.Globalization;
 namespace DepartmentLibrary.Services
 
 {
@@ -57,17 +58,27 @@ namespace DepartmentLibrary.Services
         /// <param name="adminEmail">email of the authorized user that are trying to register new user</param>
         /// <returns>Async insert into db users table</returns>
         /// <exception cref="UnauthorizedAccessException"></exception>
-        public async Task RegisterAsync(string email, string password, string role, string adminEmail)
+        public async Task RegisterAsync(RegisterModel userDto, string adminEmail)
         {
-            System.Diagnostics.Debug.WriteLine("ADMIN EMAIL",email);
-            //if (!_adminEmails.Contains(adminEmail))
-            //    throw new UnauthorizedAccessException("Only admins can register users");
+            DateTime? thesisDefenseDate = null;
+
+            if (!string.IsNullOrEmpty(userDto.ThesisDefenseDate))
+            {
+                // Convert the string to a DateTime object
+                thesisDefenseDate = DateTime.ParseExact(userDto.ThesisDefenseDate, "yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
+            }
+            System.Diagnostics.Debug.WriteLine("ADMIN EMAIL", adminEmail);
 
             var user = new User
             {
-                Email = email,
-                Password = BCrypt.Net.BCrypt.HashPassword(password),
-                Role = role
+
+                Name = userDto.Name,
+                Position = userDto.Position,
+                Email = userDto.Email,
+                Phone = userDto.Phone,
+                Password = BCrypt.Net.BCrypt.HashPassword(userDto.Password),
+                Role = userDto.Role,
+                ThesisDefenseDate = thesisDefenseDate,
             };
 
             await _users.InsertOneAsync(user);

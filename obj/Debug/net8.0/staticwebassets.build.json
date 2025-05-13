@@ -1,6 +1,6 @@
 {
   "Version": 1,
-  "Hash": "5VLmKG9B5fBxV6tx9nUcgzQV5qnXYH4oOWZBtBCWg2c=",
+  "Hash": "oNen48rYZmJogLVjhwtaGPGxcB3c9Lxfk5ZcqsxWrZg=",
   "Source": "DepartmentLibrary",
   "BasePath": "_content/DepartmentLibrary",
   "Mode": "Default",
@@ -53,6 +53,25 @@
       "CopyToOutputDirectory": "Never",
       "CopyToPublishDirectory": "PreserveNewest",
       "OriginalItemSpec": "C:\\Users\\Acer\\Source\\Repos\\DepLib\\obj\\Debug\\net8.0\\scopedcss\\projectbundle\\DepartmentLibrary.bundle.scp.css"
+    },
+    {
+      "Identity": "C:\\Users\\Acer\\Source\\Repos\\DepLib\\wwwroot\\css\\registration-style.css",
+      "SourceId": "DepartmentLibrary",
+      "SourceType": "Discovered",
+      "ContentRoot": "C:\\Users\\Acer\\Source\\Repos\\DepLib\\wwwroot\\",
+      "BasePath": "_content/DepartmentLibrary",
+      "RelativePath": "css/registration-style.css",
+      "AssetKind": "All",
+      "AssetMode": "All",
+      "AssetRole": "Primary",
+      "AssetMergeBehavior": "PreferTarget",
+      "AssetMergeSource": "",
+      "RelatedAsset": "",
+      "AssetTraitName": "",
+      "AssetTraitValue": "",
+      "CopyToOutputDirectory": "Never",
+      "CopyToPublishDirectory": "PreserveNewest",
+      "OriginalItemSpec": "wwwroot\\css\\registration-style.css"
     },
     {
       "Identity": "C:\\Users\\Acer\\Source\\Repos\\DepLib\\wwwroot\\css\\site.css",

@@ -2,27 +2,27 @@
 @{
     ViewData["Title"] = "Login";
 }
+<div class="main-login">
+<h2 class="login-title">Login</h2>
 
-<h2>Login</h2>
-
-<form method="post" asp-controller="AuthMvc" asp-action="Login">
+<form method="post" asp-controller="AuthMvc" asp-action="Login" class="login-form">
     @Html.AntiForgeryToken()
 
-    <div>
-        <label for="Email">Email</label>
-        <input asp-for="Email" type="email" required />
+    <div class="login-form-group">
+        <label for="Email" class="login-form-label">Email</label>
+        <input asp-for="Email" type="email" class="login-form-input" required />
         <span asp-validation-for="Email" class="text-danger"></span>
     </div>
 
-    <div>
-        <label for="Password">Password</label>
-        <input asp-for="Password" type="password" required />
+    <div class="login-form-group">
+        <label for="Password" class="login-form-label">Password</label>
+        <input asp-for="Password" type="password" class="login-form-input" required />
         <span asp-validation-for="Password" class="text-danger"></span>
     </div>
 
-    <button type="submit">Login</button>
+    <button type="submit" class="login-submit-btn">Login</button>
 </form>
-
+</div>
 @section Scripts {
     @{
         await Html.RenderPartialAsync("_ValidationScriptsPartial");

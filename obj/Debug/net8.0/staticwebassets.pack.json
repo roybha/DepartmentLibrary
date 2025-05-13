@@ -5,6 +5,10 @@
       "PackagePath": "staticwebassets\\DepartmentLibrary.bundle.scp.css"
     },
     {
+      "Id": "C:\\Users\\Acer\\Source\\Repos\\DepLib\\wwwroot\\css\\registration-style.css",
+      "PackagePath": "staticwebassets\\css\\registration-style.css"
+    },
+    {
       "Id": "C:\\Users\\Acer\\Source\\Repos\\DepLib\\wwwroot\\css\\site.css",
       "PackagePath": "staticwebassets\\css\\site.css"
     },

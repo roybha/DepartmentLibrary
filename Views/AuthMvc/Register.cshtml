@@ -3,31 +3,71 @@
     ViewData["Title"] = "Register";
 }
 
-<h2>Register (Admin Only)</h2>
+<div class="min-h-screen flex items-center justify-center bg-gradient-to-r from-blue-500 to-purple-500 px-4 py-10">
+    <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl p-10">
+        <h2 class="text-3xl font-bold text-center bg-black text-white rounded-t-2xl py-5 mb-10">Register (Admin Only)</h2>
 
-<form method="post" asp-controller="AuthMvc" asp-action="Register">
-    @Html.AntiForgeryToken()
+        <form method="post" asp-controller="AuthMvc" asp-action="Register" class="space-y-8">
+            @Html.AntiForgeryToken()
 
-    <div>
-        <label for="Email">Email</label>
-        <input asp-for="Email" type="email" required />
-        <span asp-validation-for="Email" class="text-danger"></span>
+            <div class="form-group flex flex-col">
+                <label for="Name" class="block text-lg font-medium mb-2">Name</label>
+                <input asp-for="Name" type="text" required class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <span asp-validation-for="Name" class="validationt ext-red-600 text-sm"></span>
+            </div>
+
+            <div class="form-group flex flex-col">
+                <label for="Position" class="block text-lg font-medium mb-2">Position</label>
+                <input asp-for="Position" type="text" required class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <span asp-validation-for="Position" class="validation text-red-600 text-sm"></span>
+            </div>
+
+            <div class="form-group flex flex-col">
+                <label for="Phone" class="block text-lg font-medium mb-2">Phone</label>
+                <input type="text" asp-for="Phone"
+                       pattern="^\+?[1-9]\d{1,14}$"
+                       required
+                       class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <span asp-validation-for="Phone" class="validation text-red-600 text-sm"></span>
+            </div>
+
+            <div class="form-group flex flex-col">
+                <label for="Email" class="block text-lg font-medium mb-2">Email</label>
+                <input asp-for="Email" type="email" required class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <span asp-validation-for="Email" class="validation text-red-600 text-sm"></span>
+            </div>
+
+            <div class="form-group flex flex-col">
+                <label for="Password" class="block text-lg font-medium mb-2">Password</label>
+                <input asp-for="Password" type="password" required class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <span asp-validation-for="Password" class=" validation text-red-600 text-sm"></span>
+            </div>
+
+            <div class="form-group flex flex-col">
+                <label for="ThesisDefenseDate" class="block text-lg font-medium mb-2">Thesis Defense Date (Optional)</label>
+                <input type="datetime-local" id="ThesisDefenseDate" name="ThesisDefenseDate"
+                       class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                <small class="text-gray-500">Leave this field empty if not applicable.</small>
+            </div>
+
+            <div class="form-group flex flex-col">
+                <label for="Role" class="block text-lg font-medium mb-2">Role</label>
+                <select asp-for="Role" class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-500" required>
+                    <option value="" disabled selected>Select a Role</option>
+                    <option value="author">Author</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <span asp-validation-for="Role" class="validation text-red-600 text-sm"></span>
+            </div>
+
+            <div class="text-center pt-6">
+                <button type="submit" class="cool-button focus:outline-none text-white bg-green-700 hover:bg-green-800 focus:ring-4 focus:ring-green-300 font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-green-600 dark:hover:bg-green-700 dark:focus:ring-green-800">
+                    Register
+                </button>
+            </div>
+        </form>
     </div>
-
-    <div>
-        <label for="Password">Password</label>
-        <input asp-for="Password" type="password" required />
-        <span asp-validation-for="Password" class="text-danger"></span>
-    </div>
-
-    <div>
-        <label for="Role">Role</label>
-        <input asp-for="Role" type="text" required />
-        <span asp-validation-for="Role" class="text-danger"></span>
-    </div>
-
-    <button type="submit">Register</button>
-</form>
+</div>
 
 @section Scripts {
     @{
