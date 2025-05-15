@@ -115,7 +115,8 @@ namespace DepartmentLibrary.Services
                 Subject = new ClaimsIdentity(new[]
                 {
                 new Claim(ClaimTypes.Name, user.Email),
-                new Claim(ClaimTypes.Role, user.Role)
+                new Claim(ClaimTypes.Role, user.Role),
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
             }),
                 Expires = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationInMinutes),
                 SigningCredentials = new SigningCredentials(
