@@ -8,6 +8,8 @@ using Microsoft.CodeAnalysis.Scripting;
 using DepartmentLibrary.Models;
 using DepartmentLibrary.Controllers;
 using System.Globalization;
+using DepartmentLibrary.Repositories;
+using MongoDB.Bson;
 namespace DepartmentLibrary.Services
 
 {
@@ -18,7 +20,8 @@ namespace DepartmentLibrary.Services
     public class AuthService
     {
         private readonly IMongoCollection<User> _users;
-        private readonly JwtSettings _jwtSettings; 
+        private readonly JwtSettings _jwtSettings;
+        private readonly IMongoCollection<Author> _authors;
 
         private readonly List<string> _adminEmails = new() { "a@example.com, sinchuk_taras@knu.ua" }; // admin s list 
 
@@ -27,6 +30,7 @@ namespace DepartmentLibrary.Services
         {
             var database = mongoClient.GetDatabase("DepartmentLibraryDb");
             _users = database.GetCollection<User>("users");
+            _authors = database.GetCollection<Author>("authors");
             _jwtSettings = jwtSettings;
         }
 
@@ -40,7 +44,7 @@ namespace DepartmentLibrary.Services
         /// <exception cref="UnauthorizedAccessException"></exception>
         public async Task<string> LoginAsync(string email, string password)
         {
-            
+
             var user = await _users.Find(u => u.Email == email).FirstOrDefaultAsync();
             System.Diagnostics.Debug.WriteLine($"UUUUUUUUUUUUUUUUUSER\n {user is null}");
             Console.WriteLine(user);
@@ -71,7 +75,7 @@ namespace DepartmentLibrary.Services
 
             var user = new User
             {
-
+                Id = ObjectId.GenerateNewId().ToString(),
                 Name = userDto.Name,
                 Position = userDto.Position,
                 Email = userDto.Email,
@@ -81,7 +85,21 @@ namespace DepartmentLibrary.Services
                 ThesisDefenseDate = thesisDefenseDate,
             };
 
+
             await _users.InsertOneAsync(user);
+            if (user.Role.ToLower() == "author")
+            {
+                System.Diagnostics.Debug.WriteLine("adding author................................................");
+                var author = new Author
+                {
+                    Id = user.Id,
+                    Name = user.Name,
+                    Phone = user.Phone,
+                    Position = user.Position,
+                    ThesisDefenseDate = user.ThesisDefenseDate,
+                };
+                await _authors.InsertOneAsync(author);
+            }
         }
         /// <summary>
         /// Generates a JSON Web Token (JWT) for the specified user using their email and role.
