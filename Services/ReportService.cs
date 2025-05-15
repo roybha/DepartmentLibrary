@@ -9,6 +9,7 @@ using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
 using DepartmentLibrary.Models;
 using MongoDB.Bson.Serialization;
+using System.Security.Claims;
 
 namespace DepartmentLibrary.Services
 {
@@ -25,18 +26,33 @@ namespace DepartmentLibrary.Services
             Console.WriteLine("[ReportService] Initialized with database: " + databaseName);
         }
 
-        // Updated method signature to include userId and userRole
-        public async Task<byte[]> GenerateAuthorsReportAsync(DateTime startDate, DateTime endDate, string userId, string userRole)
+        // Updated method signature to include ClaimsPrincipal for extracting user id
+        public async Task<byte[]> GenerateAuthorsReportAsync(DateTime startDate, DateTime endDate, string userId, string userRole, ClaimsPrincipal user)
         {
             Console.WriteLine("[ReportService] Starting report generation...");
+
             try
             {
-                Console.WriteLine($"[ReportService] Fetching report data from MongoDB between {startDate:yyyy-MM-dd} and {endDate:yyyy-MM-dd}...");
-                var reportData = await GetReportDataAsync(startDate, endDate, userId, userRole);
+                // Extract user id from claims
+                var claimUserId = user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+                if (string.IsNullOrEmpty(claimUserId))
+                {
+                    throw new UnauthorizedAccessException("User ID claim not found.");
+                }
+
+                // For authors, verify that the userId parameter matches the claims user id
+                if (userRole == "author" && !string.Equals(userId, claimUserId, StringComparison.OrdinalIgnoreCase))
+                {
+                    throw new UnauthorizedAccessException("User ID does not match the authenticated user.");
+                }
+
+                Console.WriteLine($"[ReportService] Fetching report data for userId: {claimUserId}, role: {userRole}");
+                var reportData = await GetReportDataAsync(startDate, endDate, claimUserId, userRole);
                 Console.WriteLine($"[ReportService] Retrieved data for {reportData.Count} authors");
 
                 Console.WriteLine("[ReportService] Generating PDF document...");
-                var document = new AuthorsReportDocument(reportData, startDate, endDate);
+                var document = new AuthorsReportDocument(reportData, startDate, endDate, user);
                 var pdfBytes = document.GeneratePdf();
 
                 Console.WriteLine("[ReportService] PDF generation completed successfully");
@@ -82,6 +98,7 @@ namespace DepartmentLibrary.Services
             if (userRole == "author")
             {
                 // Assumes authors field is an array of ObjectIds
+                // Filter works where authors array contains ObjectId of the logged user
                 var authorFilter = new BsonDocument("authors", new ObjectId(userId));
                 matchConditions.Add(authorFilter);
             }
